@@ -1,0 +1,44 @@
+#!name=美团广告屏蔽
+#!desc=屏蔽美团系App广告
+#!author=Lynricsy
+#!homepage=https://github.com/Lynricsy/SurgeFantacy
+#!category=美团广告屏蔽
+#!arguments=
+#!arguments-desc=
+#!version=1.0.0
+#!date=2025-07-16
+
+# ========================================
+# 美团系App广告屏蔽模块 
+# 包含美团外卖、美团主App等相关广告屏蔽规则
+# ========================================
+
+[General]
+# 强制HTTP引擎处理的域名
+force-http-engine-hosts = %APPEND% wmapi.meituan.com
+
+[URL Rewrite]
+# 美团广告域名拦截
+"^https?:\/\/(s3plus|flowplus)\.meituan\.net\/v\d\/\w+\/linglong\/\w+\.(gif|jpg|mp4)" - reject
+"^https?:\/\/apimobile\.meituan\.com\/appupdate\/mach\/checkUpdate?" - reject
+"^https?:\/\/flowplus\.meituan\.net\/v\d\/\w+\/linglong\/\d+\.(gif|jpg|mp4)" - reject
+"^https?:\/\/img\.meituan\.net\/(adunion|display|dpmobile|midas)\/\w+\.(gif|jpg|jpg\.webp)$" - reject
+"^https?:\/\/p\d\.meituan\.net\/(bizad|wmbanner)\/\w+\.jpg" - reject
+"^https?:\/\/p\d\.meituan\.net\/(bizad|wmbanner|brandCpt)\/\w+\.jpg" - reject
+"^https?:\/\/p\d\.meituan\.net\/movie\/\w+\.jpg\?may_covertWebp" - reject
+"^https?:\/\/wmapi\.meituan\.com\/api\/v\d\/startpicture" - reject
+"^https?:\/\/www\.meituan\.com\/api\/v\d\/appstatus\?" - reject
+
+[Map Local]
+# 将广告请求映射到空白文件
+"^https?:\/\/peisongapi\.meituan\.com\/client\/getInitiateImage" data="https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/blank/blank.txt"
+"^https?:\/\/s3plus\.meituan\.net\/.*\/brandcpt-vedio\/.*\?time" data="https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/blank/blank.txt"
+"^https?:\/\/wmapi\.meituan\.com\/api\/v\d\/(openscreen\?ad|loadInfo\?|startpicture)" data="https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/blank/blank.txt"
+
+[Script]
+# 美团外卖开屏广告去除
+美团外卖_开屏去广告 = type=http-response,script-path=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/startup/startup.js,pattern="^https?:\/\/wmapi\.meituan\.com\/api\/v\d+\/loadInfo?",requires-body=1
+
+[MITM]
+# 需要MITM的域名
+hostname = %APPEND% apimobile.meituan.com,flowplus.meituan.net,img.meituan.net,p*.meituan.net,peisongapi.meituan.com,s3plus.meituan.net,wmapi.meituan.com,www.meituan.com 
