@@ -322,9 +322,13 @@ function sortByRegion(pro) {
 
   // 提取节点的地区信息
   function extractRegion(nodeName) {
+    // 特殊处理原脚本的复合地区格式
+    if (nodeName.includes("Taiwan TW 台湾")) return "台湾";
+    if (nodeName.includes("Hong Kong") && nodeName.includes("HK")) return "香港";
+
     // 尝试匹配各种地区格式 (不包含国旗)
     const patterns = [
-      // 匹配中文地区名
+      // 匹配中文地区名（优先级更高）
       /香港|澳门|台湾|日本|韩国|新加坡|美国|英国|法国|德国|澳大利亚|俄罗斯|印度|巴西|意大利|西班牙|瑞士|瑞典|挪威|丹麦|芬兰|奥地利|比利时|波兰|捷克|匈牙利|葡萄牙|希腊|爱尔兰|卢森堡|墨西哥|阿根廷|智利|土耳其|南非|阿联酋|沙特阿拉伯|以色列|埃及|尼日利亚|肯尼亚|摩洛哥|加纳|泰国|越南|菲律宾|马来|印尼|柬埔寨|老挝|缅甸|孟加拉国|巴基斯坦|斯里兰卡|尼泊尔|哈萨克斯坦|乌兹别克斯坦|吉尔吉斯斯坦|塔吉克斯坦|蒙古|乌克兰|白俄罗斯|立陶宛|拉脱维亚|爱沙尼亚|摩尔多瓦|格鲁吉亚|亚美尼亚|阿塞拜疆|保加利亚|罗马尼亚|塞尔维亚|克罗地亚|斯洛文尼亚|斯洛伐克|波斯尼亚和黑塞哥维那|马其顿|阿尔巴尼亚|黑山共和国/,
       // 匹配英文简写
       /\b(HK|MO|TW|JP|KR|SG|US|GB|FR|DE|AU|RU|IN|BR|IT|ES|CH|SE|NO|DK|FI|AT|BE|PL|CZ|HU|PT|GR|IE|LU|MX|AR|CL|TR|ZA|AE|SA|IL|EG|NG|KE|MA|GH|TH|VN|PH|MY|ID|KH|LA|MM|BD|PK|LK|NP|KZ|UZ|KG|TJ|MN|UA|BY|LT|LV|EE|MD|GE|AM|AZ|BG|RO|RS|HR|SI|SK|BA|MK|AL|ME)\b/i,
@@ -346,12 +350,21 @@ function sortByRegion(pro) {
 
   // 获取地区优先级索引
   function getRegionPriority(region) {
-    const index = regionPriority.findIndex(r =>
-      r.toLowerCase() === region.toLowerCase() ||
-      region.toLowerCase().includes(r.toLowerCase()) ||
-      r.toLowerCase().includes(region.toLowerCase())
-    );
-    return index !== -1 ? index : 999; // 未找到的放在最后
+    const regionLower = region.toLowerCase();
+
+    // 先尝试精确匹配
+    let index = regionPriority.findIndex(r => r.toLowerCase() === regionLower);
+    if (index !== -1) return index;
+
+    // 再尝试包含匹配 (region包含优先级地区名)
+    index = regionPriority.findIndex(r => regionLower.includes(r.toLowerCase()));
+    if (index !== -1) return index;
+
+    // 最后尝试被包含匹配 (优先级地区名包含region)
+    index = regionPriority.findIndex(r => r.toLowerCase().includes(regionLower));
+    if (index !== -1) return index;
+
+    return 999; // 未找到的放在最后
   }
 
   // 排序函数
