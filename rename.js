@@ -310,67 +310,73 @@ function fampx(pro) { const wis = []; const wnout = []; for (const proxy of pro)
 
 // 节点地区排序功能
 function sortByRegion(pro) {
-  // 定义地区优先级顺序 (不包含国旗)
-  const regionPriority = [
-    // 中文地区名
-    '香港', '台湾', '新加坡', '日本', '美国', '德国', '英国',
-    // 英文简写
-    'HK', 'TW', 'SG', 'JP', 'US', 'DE', 'GB',
-    // 英文全称
-    'Hong Kong', 'Taiwan', 'Singapore', 'Japan', 'United States', 'Germany', 'United Kingdom'
-  ];
+  // 定义地区映射表，每个地区只有一个优先级
+  const regionMap = {
+    // 香港 - 优先级 0
+    '香港': 0, 'HK': 0, 'Hong Kong': 0, 'Hongkong': 0,
+    // 台湾 - 优先级 1  
+    '台湾': 1, 'TW': 1, 'Taiwan': 1, 'Taipei': 1,
+    // 新加坡 - 优先级 2
+    '新加坡': 2, 'SG': 2, 'Singapore': 2,
+    // 日本 - 优先级 3
+    '日本': 3, 'JP': 3, 'Japan': 3, 'Tokyo': 3, 'Osaka': 3,
+    // 美国 - 优先级 4
+    '美国': 4, 'US': 4, 'United States': 4, 'USA': 4,
+    // 德国 - 优先级 5
+    '德国': 5, 'DE': 5, 'Germany': 5, 'Frankfurt': 5,
+    // 英国 - 优先级 6
+    '英国': 6, 'GB': 6, 'UK': 6, 'United Kingdom': 6, 'London': 6
+  };
 
-  // 提取节点的地区信息
-  function extractRegion(nodeName) {
+  // 提取并标准化地区信息
+  function getRegionIdentifier(nodeName) {
     // 特殊处理原脚本的复合地区格式
-    if (nodeName.includes("Taiwan TW 台湾")) return "台湾";
-    if (nodeName.includes("Hong Kong") && nodeName.includes("HK")) return "香港";
+    if (nodeName.includes("Taiwan TW 台湾")) return '台湾';
+    if (nodeName.includes("Hong Kong") && nodeName.includes("HK")) return '香港';
 
-    // 尝试匹配各种地区格式 (不包含国旗)
-    const patterns = [
-      // 匹配中文地区名（优先级更高）
-      /香港|澳门|台湾|日本|韩国|新加坡|美国|英国|法国|德国|澳大利亚|俄罗斯|印度|巴西|意大利|西班牙|瑞士|瑞典|挪威|丹麦|芬兰|奥地利|比利时|波兰|捷克|匈牙利|葡萄牙|希腊|爱尔兰|卢森堡|墨西哥|阿根廷|智利|土耳其|南非|阿联酋|沙特阿拉伯|以色列|埃及|尼日利亚|肯尼亚|摩洛哥|加纳|泰国|越南|菲律宾|马来|印尼|柬埔寨|老挝|缅甸|孟加拉国|巴基斯坦|斯里兰卡|尼泊尔|哈萨克斯坦|乌兹别克斯坦|吉尔吉斯斯坦|塔吉克斯坦|蒙古|乌克兰|白俄罗斯|立陶宛|拉脱维亚|爱沙尼亚|摩尔多瓦|格鲁吉亚|亚美尼亚|阿塞拜疆|保加利亚|罗马尼亚|塞尔维亚|克罗地亚|斯洛文尼亚|斯洛伐克|波斯尼亚和黑塞哥维那|马其顿|阿尔巴尼亚|黑山共和国/,
-      // 匹配英文简写
-      /\b(HK|MO|TW|JP|KR|SG|US|GB|FR|DE|AU|RU|IN|BR|IT|ES|CH|SE|NO|DK|FI|AT|BE|PL|CZ|HU|PT|GR|IE|LU|MX|AR|CL|TR|ZA|AE|SA|IL|EG|NG|KE|MA|GH|TH|VN|PH|MY|ID|KH|LA|MM|BD|PK|LK|NP|KZ|UZ|KG|TJ|MN|UA|BY|LT|LV|EE|MD|GE|AM|AZ|BG|RO|RS|HR|SI|SK|BA|MK|AL|ME)\b/i,
-      // 匹配英文全称（简化版）
-      /Hong Kong|Macao|Taiwan|Japan|Korea|Singapore|United States|United Kingdom|France|Germany|Australia|Russia|India|Brazil|Italy|Spain|Switzerland|Sweden|Norway|Denmark|Finland|Austria|Belgium|Poland|Czech|Hungary|Portugal|Greece|Ireland|Luxembourg|Mexico|Argentina|Chile|Turkey|South Africa|Dubai|Saudi Arabia|Israel|Egypt|Nigeria|Kenya|Morocco|Ghana|Thailand|Vietnam|Philippines|Malaysia|Indonesia|Cambodia|Laos|Myanmar|Bangladesh|Pakistan|Lanka|Nepal|Kazakhstan|Uzbekistan|Kyrgyzstan|Tajikistan|Mongolia|Ukraine|Belarus|Lithuania|Latvia|Estonia|Moldova|Georgia|Armenia|Azerbaijan|Bulgaria|Romania|Serbia|Croatia|Slovenia|Slovakia|Bosnia|Macedonia|Albania|Montenegro/i
+    // 按优先级顺序检查地区匹配
+    const priorityChecks = [
+      // 中文地区名优先
+      ['香港', '台湾', '新加坡', '日本', '美国', '德国', '英国'],
+      // 英文简写
+      ['HK', 'TW', 'SG', 'JP', 'US', 'DE', 'GB', 'UK'],
+      // 英文全称和城市名
+      ['Hong Kong', 'Taiwan', 'Singapore', 'Japan', 'United States', 'Germany', 'United Kingdom', 'Tokyo', 'Osaka', 'Frankfurt', 'London']
     ];
 
-    for (const pattern of patterns) {
-      const match = nodeName.match(pattern);
-      if (match) {
-        return match[0];
+    for (const checkList of priorityChecks) {
+      for (const region of checkList) {
+        if (nodeName.includes(region)) {
+          return region;
+        }
       }
     }
 
-    // 如果没有匹配到，尝试从节点名的第一个词提取地区
+    // 其他地区识别
+    const otherRegions = [
+      '澳门', '韩国', '法国', '澳大利亚', '俄罗斯', '印度', '巴西', '意大利', '西班牙', '瑞士', '瑞典', '挪威', '丹麦', '芬兰', '奥地利', '比利时', '波兰', '捷克', '匈牙利', '葡萄牙', '希腊', '爱尔兰', '卢森堡', '墨西哥', '阿根廷', '智利', '土耳其', '南非', '阿联酋', '沙特阿拉伯', '以色列', '埃及', '泰国', '越南', '菲律宾', '马来', '印尼', '柬埔寨', '老挝', '缅甸', '孟加拉国', '巴基斯坦', '斯里兰卡', '尼泊尔', '哈萨克斯坦', '乌兹别克斯坦', '吉尔吉斯斯坦', '塔吉克斯坦', '蒙古', '乌克兰', '白俄罗斯', '立陶宛', '拉脱维亚', '爱沙尼亚', '摩尔多瓦', '格鲁吉亚', '亚美尼亚', '阿塞拜疆', '保加利亚', '罗马尼亚', '塞尔维亚', '克罗地亚', '斯洛文尼亚', '斯洛伐克', '波斯尼亚和黑塞哥维那', '马其顿', '阿尔巴尼亚', '黑山共和国'
+    ];
+
+    for (const region of otherRegions) {
+      if (nodeName.includes(region)) {
+        return region;
+      }
+    }
+
+    // 如果都没匹配到，返回第一个词
     const firstWord = nodeName.split(/[\s\-_]+/)[0];
-    return firstWord || '';
+    return firstWord || nodeName;
   }
 
-  // 获取地区优先级索引
-  function getRegionPriority(region) {
-    const regionLower = region.toLowerCase();
-
-    // 先尝试精确匹配
-    let index = regionPriority.findIndex(r => r.toLowerCase() === regionLower);
-    if (index !== -1) return index;
-
-    // 再尝试包含匹配 (region包含优先级地区名)
-    index = regionPriority.findIndex(r => regionLower.includes(r.toLowerCase()));
-    if (index !== -1) return index;
-
-    // 最后尝试被包含匹配 (优先级地区名包含region)
-    index = regionPriority.findIndex(r => r.toLowerCase().includes(regionLower));
-    if (index !== -1) return index;
-
-    return 999; // 未找到的放在最后
+  // 获取地区优先级
+  function getRegionPriority(regionIdentifier) {
+    return regionMap[regionIdentifier] !== undefined ? regionMap[regionIdentifier] : 999;
   }
 
   // 排序函数
   return pro.sort((a, b) => {
-    const regionA = extractRegion(a.name);
-    const regionB = extractRegion(b.name);
+    const regionA = getRegionIdentifier(a.name);
+    const regionB = getRegionIdentifier(b.name);
 
     const priorityA = getRegionPriority(regionA);
     const priorityB = getRegionPriority(regionB);
