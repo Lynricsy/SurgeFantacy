@@ -1,5 +1,5 @@
 /**
- * 更新日期：2025-07-18 10:24:11
+ * 更新日期：2025-07-18 10:45:24
  * 用法：Sub-Store 脚本操作添加
  * rename.js 以下是此脚本支持的参数，必须以 # 为开头多个参数使用"&"连接，参考上述地址为例使用参数。 禁用缓存url#noCache
  *
@@ -300,19 +300,11 @@ function operator(pro) {
         .concat(firstName, usflag, nNames, findKeyValue, retainKey, ikey, ikeys)
         .filter((k) => k !== "");
 
-      // 🎯 重命名时添加服务商后缀
-      let finalName = keyover.join(FGF);
-      if (providerSuffix) {
-        finalName += " " + providerSuffix.trim();
-      }
-      e.name = finalName;
+      // 🎯 重命名时暂不添加服务商后缀，等序号添加完再处理
+      e.name = keyover.join(FGF);
     } else {
       if (nm) {
-        let finalName = FNAME + FGF + e.name;
-        if (providerSuffix) {
-          finalName += " " + providerSuffix.trim();
-        }
-        e.name = finalName;
+        e.name = FNAME + FGF + e.name;
       } else {
         e.name = null;
       }
@@ -320,6 +312,14 @@ function operator(pro) {
   });
   pro = pro.filter((e) => e.name !== null);
   jxh(pro);
+
+  // 🎯 在序号添加完成后，为带后缀的节点添加服务商后缀
+  pro.forEach((e) => {
+    if (e.providerSuffix) {
+      e.name += " " + e.providerSuffix;
+    }
+  });
+
   numone && oneP(pro);
   blpx && (pro = fampx(pro));
   key && (pro = pro.filter((e) => !keyb.test(e.name)));
@@ -422,7 +422,7 @@ function sortByRegion(pro) {
     const hasProviderB = !!(b.providerSuffix);
 
     if (hasProviderA !== hasProviderB) {
-      return hasProviderB - hasProviderA; // true - false = 1, false - true = -1
+      return hasProviderB - hasProviderA; // A有后缀B没有时返回-1(A排前), B有后缀A没有时返回1(B排前)
     }
 
     // 相同优先级的按地区名字典排序
