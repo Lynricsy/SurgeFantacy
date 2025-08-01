@@ -1,5 +1,5 @@
 /**
- * 更新日期：2025-08-01 11:41:55
+ * 更新日期：2025-08-01 11:53:21
  * 用法：Sub-Store 脚本操作添加
  * rename.js 以下是此脚本支持的参数，必须以 # 为开头多个参数使用"&"连接，参考上述地址为例使用参数。 禁用缓存url#noCache
  *
@@ -183,20 +183,17 @@ function operator(pro) {
 
     // 从后往前查找第一个合法的地区名称
     let regionFound = false;
-    for (let i = e.name.length - 1; i >= 0; i--) {
-      const subStr = e.name.substring(0, i + 1);
+    for (let i = e.name.length; i >= 0; i--) {
+      const subStr = e.name.substring(0, i);
+      const suffix = e.name.substring(i).trim();
 
       // 检查子字符串是否是已知地区或地区代码
-      if (AMK.some(([key]) => subStr.endsWith(key))) {
+      if (AMK.some(([key]) => subStr === key)) {
         // 如果是地区，那么剩下的部分就是后缀
-        providerSuffix = e.name.substring(i + 1).trim();
-        e.name = subStr; // 更新节点名为地区部分
-
-        // 如果后缀不为空，则保存
-        if (providerSuffix) {
-          e.providerSuffix = providerSuffix;
+        if (suffix) {
+          e.providerSuffix = suffix;
         }
-
+        e.name = subStr; // 更新节点名为地区部分
         regionFound = true;
         break; // 找到最长的匹配地区后就跳出循环
       }
